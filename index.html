@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Studiora Widgets</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4EFE7;--ink:#241D19;--mute:#827365;--line:rgba(130,115,101,.25)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17191B;--ink:#F2F2F0;--mute:#9EA3A8;--line:rgba(255,255,255,.12)}}
+:root[data-theme="dark"]{--bg:#17191B;--ink:#F2F2F0;--mute:#9EA3A8;--line:rgba(255,255,255,.12)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif;padding:32px 16px}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font:500 40px/1.1 "Cormorant Garamond",Georgia,serif;margin:0 0 6px}
+p{color:var(--mute);margin:0 0 20px;font-size:14px}
+.tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.tabs button{font:600 11px Inter;letter-spacing:.14em;text-transform:uppercase;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--ink);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr));gap:18px}
+figure{margin:0}
+figcaption{font:600 11px Inter;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+iframe{width:100%;border:0;border-radius:14px;display:block}
+</style></head>
+<body><div class="wrap">
+<h1>Planner widgets</h1>
+<p>Live previews. Pick a theme. Everything you type stays in your own browser.</p>
+<div class="tabs" role="group" aria-label="Theme">
+<button data-t="espresso" aria-pressed="true">Espresso Luxury</button><button data-t="cream" aria-pressed="false">Warm Minimalism</button><button data-t="midnight" aria-pressed="false">Midnight Finance</button></div>
+<div class="grid" id="g"></div></div>
+<script>
+const W=[['clock','Flip clock',230],['countdown','Exam countdown',260],['focus','Focus timer',250],['savings','Savings goal',400],['habits','Discipline tracker',170],['principle','Principle of the day',200],['compound','Compound growth calculator',600]];
+const g=document.getElementById('g');
+function draw(t){g.innerHTML=W.map(([f,n,h])=>`<figure${f==='compound'?' style="grid-column:1/-1"':''}><figcaption>${n}</figcaption><iframe title="${n}" loading="lazy" style="height:${h}px" src="${f}.html?theme=${t}&label=Unit%203%20exam&date=2026-12-11T09:00"></iframe></figure>`).join('');}
+document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-t]').forEach(x=>x.setAttribute('aria-pressed',x===b));draw(b.dataset.t);});
+draw('espresso');
+</script></body></html>

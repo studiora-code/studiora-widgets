@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Savings Goal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widgets.css">
+<style>
+.ticks{display:flex;justify-content:space-between;margin-top:6px}.ticks span{font:600 10px/1 var(--sans);color:var(--mute);letter-spacing:.08em}
+.edit{display:none}.editing .edit{display:grid}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.k{border-top:1px solid var(--line);padding-top:10px}.k b{display:block;font:500 22px/1.1 var(--serif);font-variant-numeric:tabular-nums}
+.add{display:flex;gap:8px;align-items:end}
+</style></head>
+<body><main class="card stack" id="root" aria-label="Savings goal">
+<div class="row between"><p class="eyebrow" id="name">Savings goal</p><button id="btn" aria-expanded="false">Edit</button></div>
+<div class="row between" style="align-items:flex-end"><p class="big" id="saved">$0</p><p class="sub" id="pct" style="text-align:right">0% of goal</p></div>
+<div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="pb"><i id="fill" style="width:0"></i></div>
+<div class="ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100%</span></div></div>
+<div class="kpis"><div class="k"><span class="eyebrow">Goal</span><b id="goal">$0</b></div><div class="k"><span class="eyebrow">To go</span><b id="togo">$0</b></div><div class="k"><span class="eyebrow">Per week</span><b id="pw">-</b></div></div>
+<form class="add" id="addf"><label style="flex:1"><span>Add a deposit</span><input id="amt" type="number" min="0" step="0.01" inputmode="decimal" placeholder="25"></label><button class="primary" type="submit">Add</button></form>
+<form class="edit grid" id="form" style="grid-template-columns:1fr 1fr 1fr;align-items:end">
+<label><span>Goal name</span><input id="fn" maxlength="30" placeholder="Emergency fund"></label>
+<label><span>Target</span><input id="ft" type="number" min="1" step="1" required></label>
+<label><span>Deadline</span><input id="fdl" type="date"></label>
+<label><span>Saved so far</span><input id="fs" type="number" min="0" step="0.01"></label>
+<button class="primary" type="submit">Save</button></form>
+<p class="sub">Stays in this browser only. Nothing is sent anywhere.</p>
+</main>
+<script src="widgets.js"></script>
+<script>
+const $=id=>document.getElementById(id), cur=W.param('currency','USD'), key='savings:'+W.param('id','main');
+let c=W.store.get(key,{name:W.param('name','Savings goal'),target:+W.param('target',1000),saved:0,deadline:W.param('deadline','')});
+function render(){
+  const p=c.target>0?W.clamp(c.saved/c.target*100,0,100):0;
+  $('name').textContent=c.name;$('saved').textContent=W.money(c.saved,cur);$('goal').textContent=W.money(c.target,cur);
+  $('togo').textContent=W.money(Math.max(0,c.target-c.saved),cur);$('pct').textContent=p.toFixed(1).replace('.0','')+'% of goal';
+  $('fill').style.width=p+'%';$('pb').setAttribute('aria-valuenow',Math.round(p));
+  let pw='-';if(c.deadline){const wk=(new Date(c.deadline+'T23:59')-Date.now())/6048e5;const rem=Math.max(0,c.target-c.saved);pw=rem===0?'Done':wk>0?W.money(Math.ceil(rem/wk),cur):'Past';}
+  $('pw').textContent=pw;
+}
+$('addf').onsubmit=e=>{e.preventDefault();const v=parseFloat($('amt').value);if(isFinite(v)&&v>0){c.saved=Math.round((c.saved+v)*100)/100;W.store.set(key,c);$('amt').value='';render();}};
+$('btn').onclick=()=>{const on=$('root').classList.toggle('editing');$('btn').setAttribute('aria-expanded',on);$('btn').textContent=on?'Close':'Edit';$('fn').value=c.name;$('ft').value=c.target;$('fdl').value=c.deadline;$('fs').value=c.saved;};
+$('form').onsubmit=e=>{e.preventDefault();c={name:$('fn').value.trim()||'Savings goal',target:Math.max(1,+$('ft').value||1),saved:Math.max(0,+$('fs').value||0),deadline:$('fdl').value};W.store.set(key,c);$('btn').click();render();};
+render();
+</script></body></html>

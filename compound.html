@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compound Growth</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widgets.css">
+<style>
+body{overflow:auto;align-items:flex-start}
+.ins{grid-template-columns:repeat(4,1fr)}
+.out{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.out div{border-top:1px solid var(--line);padding-top:10px}.out b{display:block;font:500 24px/1.1 var(--serif);font-variant-numeric:tabular-nums}
+svg text{font:600 10px var(--sans);fill:var(--mute)}
+.legend{display:flex;gap:16px}.legend span{font-size:12px;color:var(--mute);display:flex;align-items:center;gap:6px}.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+@media (max-width:520px){.ins{grid-template-columns:1fr 1fr}.out{grid-template-columns:1fr}}
+</style></head>
+<body><main class="card stack" aria-label="Compound growth calculator">
+<p class="eyebrow">Compound growth · education only</p>
+<h1 class="title">How saving grows over time</h1>
+<form class="grid ins" id="f">
+<label><span>Starting amount</span><input id="p" type="number" min="0" step="1" value="500" inputmode="decimal"></label>
+<label><span>Monthly deposit</span><input id="m" type="number" min="0" step="1" value="50" inputmode="decimal"></label>
+<label><span>Yearly rate %</span><input id="r" type="number" min="0" max="30" step="0.1" value="5" inputmode="decimal"></label>
+<label><span>Years</span><input id="y" type="number" min="1" max="60" step="1" value="10"></label>
+</form>
+<p class="err" id="err" role="alert"></p>
+<div class="out" aria-live="polite"><div><span class="eyebrow">You put in</span><b id="dep">-</b></div><div><span class="eyebrow">Growth</span><b id="int">-</b></div><div><span class="eyebrow">End balance</span><b id="fv">-</b></div></div>
+<svg id="chart" viewBox="0 0 640 200" width="100%" role="img" aria-label="Chart of deposits and growth by year"></svg>
+<div class="legend"><span><i style="background:var(--acc2)"></i>Deposits</span><span><i style="background:var(--acc)"></i>Growth</span></div>
+<p class="sub">Assumes the rate stays fixed and compounds monthly, with deposits at the end of each month. Real returns change, can be negative, and are never guaranteed. This is a learning tool, not financial advice.</p>
+</main>
+<script src="widgets.js"></script>
+<script>
+const $=id=>document.getElementById(id), cur=W.param('currency','USD');
+// Future value with monthly compounding, end-of-month deposits:
+// FV = P(1+i)^n + M * ((1+i)^n - 1) / i, i = r/12, n = 12y (if i=0: P + M n)
+function fv(P,M,r,y){const i=r/100/12,n=Math.round(y*12);if(i===0)return P+M*n;const g=Math.pow(1+i,n);return P*g+M*(g-1)/i;}
+window.fv=fv;
+function calc(){
+  const P=+$('p').value,M=+$('m').value,r=+$('r').value,y=Math.round(+$('y').value);
+  if(![P,M,r,y].every(isFinite)||P<0||M<0||r<0||r>30||y<1||y>60){$('err').textContent='Use amounts of 0 or more, a rate from 0 to 30, and 1 to 60 years.';return;}
+  $('err').textContent='';
+  const end=fv(P,M,r,y),dep=P+M*12*y;
+  $('dep').textContent=W.money(dep,cur);$('int').textContent=W.money(end-dep,cur);$('fv').textContent=W.money(end,cur);
+  const svg=$('chart'),W0=640,H0=200,pad=24,bw=(W0-pad*2)/y;let o='';const max=fv(P,M,r,y)||1;
+  for(let k=1;k<=y;k++){const t=fv(P,M,r,k),d=P+M*12*k,x=pad+(k-1)*bw+bw*.18,w=bw*.64;
+    const hd=(d/max)*(H0-40),ht=(t/max)*(H0-40);
+    o+=`<rect x="${x}" y="${H0-20-ht}" width="${w}" height="${ht-hd}" rx="2" fill="var(--acc)"/><rect x="${x}" y="${H0-20-hd}" width="${w}" height="${hd}" rx="2" fill="var(--acc2)"/>`;
+    if(y<=15||k%Math.ceil(y/10)===0)o+=`<text x="${x+w/2}" y="${H0-6}" text-anchor="middle">${k}</text>`;}
+  svg.innerHTML=o;
+}
+$('f').addEventListener('input',calc);calc();
+</script></body></html>

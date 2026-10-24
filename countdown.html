@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Countdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widgets.css">
+<style>
+.units{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.u{border:1px solid var(--line);border-radius:12px;padding:12px 6px;text-align:center}
+.u b{display:block;font:500 40px/1 var(--serif);font-variant-numeric:tabular-nums}
+.u small{display:block;margin-top:6px;font:600 10px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--mute)}
+.edit{display:none;margin-top:14px}.editing .edit{display:grid}
+</style></head>
+<body><main class="card stack" id="root" aria-label="Countdown">
+<div class="row between"><p class="eyebrow" id="kicker">Next milestone</p><button id="btn" aria-expanded="false">Edit</button></div>
+<h1 class="title" id="label">Set a date</h1>
+<div class="units" id="units" aria-live="polite">
+<div class="u"><b id="d">0</b><small>Days</small></div><div class="u"><b id="h">0</b><small>Hours</small></div>
+<div class="u"><b id="m">0</b><small>Min</small></div><div class="u"><b id="s">0</b><small>Sec</small></div></div>
+<p class="sub" id="note"></p>
+<form class="edit grid" id="form" style="grid-template-columns:1fr 1fr auto;align-items:end">
+<label><span>Label</span><input id="fl" maxlength="40" placeholder="Unit 3 exam"></label>
+<label><span>Date and time</span><input id="fd" type="datetime-local" required></label>
+<button class="primary" type="submit">Save</button></form>
+</main>
+<script src="widgets.js"></script>
+<script>
+// key lets several countdowns live on one page; settings stay in this browser only.
+const key='countdown:'+W.param('id','main');
+let cfg=W.store.get(key,{label:W.param('label',''),date:W.param('date','')});
+const $=id=>document.getElementById(id);
+$('kicker').textContent=W.param('kicker','Next milestone');
+function render(){
+  $('label').textContent=cfg.label||'Set a date';
+  const t=cfg.date?new Date(cfg.date):null;
+  if(!t||isNaN(t)){['d','h','m','s'].forEach(k=>$(k).textContent='0');$('note').textContent='Tap Edit to choose a date.';return;}
+  let ms=t-Date.now(); const past=ms<0; ms=Math.abs(ms);
+  const d=Math.floor(ms/864e5),h=Math.floor(ms/36e5)%24,m=Math.floor(ms/6e4)%60,s=Math.floor(ms/1e3)%60;
+  $('d').textContent=d;$('h').textContent=h;$('m').textContent=String(m).padStart(2,'0');$('s').textContent=String(s).padStart(2,'0');
+  $('note').textContent=(past?'Passed on ':'On ')+t.toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+}
+$('btn').onclick=()=>{const on=$('root').classList.toggle('editing');$('btn').setAttribute('aria-expanded',on);$('btn').textContent=on?'Close':'Edit';$('fl').value=cfg.label;$('fd').value=cfg.date;};
+$('form').onsubmit=e=>{e.preventDefault();cfg={label:$('fl').value.trim(),date:$('fd').value};W.store.set(key,cfg);$('btn').click();render();};
+render();setInterval(render,1000);
+</script></body></html>

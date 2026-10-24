@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Discipline Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widgets.css">
+<style>
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px}
+.day{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;padding:0;text-transform:none;letter-spacing:0}
+.day span{font:600 10px/1 var(--sans);letter-spacing:.16em;color:var(--mute);text-transform:uppercase}
+.day i{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:block;transition:background .25s,border-color .25s}
+.day[aria-pressed="true"] i{background:var(--acc);border-color:var(--acc)}
+.day.today span{color:var(--acc)}
+</style></head>
+<body><main class="card" aria-label="Weekly habit tracker">
+<div class="row between"><p class="eyebrow" id="name">Discipline</p><p class="sub" id="sum">0 of 7</p></div>
+<div class="week" id="week" role="group"></div>
+</main>
+<script src="widgets.js"></script>
+<script>
+const habit=W.param('habit','Logged spending'), key='habit:'+W.param('id',habit);
+document.getElementById('name').textContent=habit;
+const now=new Date(), mon=new Date(now); mon.setHours(0,0,0,0); mon.setDate(now.getDate()-((now.getDay()+6)%7));
+const wk=mon.toISOString().slice(0,10);
+let st=W.store.get(key,{wk,days:[0,0,0,0,0,0,0]}); if(st.wk!==wk) st={wk,days:[0,0,0,0,0,0,0]};
+const names=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], ti=(now.getDay()+6)%7, box=document.getElementById('week');
+document.getElementById('week').setAttribute('aria-label',habit+', this week');
+names.forEach((n,i)=>{const b=document.createElement('button');b.className='day'+(i===ti?' today':'');b.innerHTML='<i></i><span>'+n+'</span>';
+  b.setAttribute('aria-label',n+(i===ti?' (today)':''));b.setAttribute('aria-pressed',!!st.days[i]);
+  b.onclick=()=>{st.days[i]=st.days[i]?0:1;b.setAttribute('aria-pressed',!!st.days[i]);W.store.set(key,st);sum();};box.appendChild(b);});
+function sum(){document.getElementById('sum').textContent=st.days.reduce((a,b)=>a+b,0)+' of 7';}
+sum();
+</script></body></html>

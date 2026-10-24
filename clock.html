@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flip Clock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widgets.css">
+<style>
+.clock{display:flex;justify-content:center;align-items:center;gap:10px}
+.sep{font:500 54px/1 var(--serif);color:var(--acc);opacity:.7;margin:0 2px;transform:translateY(-4px)}
+.flip{position:relative;width:76px;height:104px;perspective:400px;font:600 78px/104px var(--serif);text-align:center;color:var(--flip-ink)}
+.flip .half{position:absolute;left:0;width:100%;height:50%;overflow:hidden;background:var(--flip);border-radius:10px}
+.flip .top{top:0;border-radius:10px 10px 0 0;line-height:104px}
+.flip .bot{bottom:0;border-radius:0 0 10px 10px}
+.flip .bot span,.flip .flap.up span{height:104px;line-height:104px;transform:translateY(-52px)}
+.flip .half span{display:block}
+.flip:after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.35);z-index:5}
+.flip .flap{position:absolute;left:0;width:100%;height:50%;overflow:hidden;background:var(--flip);backface-visibility:hidden;z-index:4}
+.flip .flap.down{top:0;border-radius:10px 10px 0 0;line-height:104px;transform-origin:bottom;animation:fdown .3s ease-in forwards}
+.flip .flap.up{bottom:0;border-radius:0 0 10px 10px;transform-origin:top;transform:rotateX(90deg);animation:fup .3s .3s ease-out forwards}
+@keyframes fdown{to{transform:rotateX(-90deg)}}
+@keyframes fup{to{transform:rotateX(0)}}
+.flip .half,.flip .flap{box-shadow:inset 0 0 0 1px var(--line)}
+.meta{text-align:center;margin-top:16px}
+.ampm{font:600 11px/1 var(--sans);letter-spacing:.2em;color:var(--mute);align-self:flex-end;margin-bottom:8px}
+@media (max-width:460px){.flip{width:52px;height:72px;font-size:54px;line-height:72px}.flip .top,.flip .flap.down{line-height:72px}.flip .bot span,.flip .flap.up span{height:72px;line-height:72px;transform:translateY(-36px)}.sep{font-size:38px}}
+</style></head>
+<body><main class="card" aria-label="Clock">
+<div class="clock" id="clock" role="timer" aria-live="off"></div>
+<p class="meta"><span class="eyebrow" id="date"></span></p>
+<p class="sr" id="sr" aria-live="polite"></p>
+</main>
+<script src="widgets.js"></script>
+<script>
+const h24 = W.param('format','12') === '24', showSec = W.param('seconds','0') === '1';
+const el = document.getElementById('clock'), dateEl = document.getElementById('date');
+const slots = [];
+function mk(){ const d=document.createElement('div'); d.className='flip'; d.innerHTML='<div class="half top"><span>0</span></div><div class="half bot"><span>0</span></div>'; d._v='0'; return d; }
+function sep(){ const s=document.createElement('div'); s.className='sep'; s.textContent=':'; s.setAttribute('aria-hidden','true'); return s; }
+const n = showSec ? 6 : 4;
+for(let i=0;i<n;i++){ if(i===2||i===4) el.appendChild(sep()); const d=mk(); slots.push(d); el.appendChild(d); }
+const ap=document.createElement('div'); ap.className='ampm'; if(!h24) el.appendChild(ap);
+function set(d,v){
+  if(d._v===v) return; const old=d._v; d._v=v;
+  const top=d.querySelector('.top span'), bot=d.querySelector('.bot span');
+  const fd=document.createElement('div'); fd.className='flap down'; fd.innerHTML='<span>'+old+'</span>';
+  const fu=document.createElement('div'); fu.className='flap up'; fu.innerHTML='<span>'+v+'</span>';
+  top.textContent=v; d.appendChild(fd); d.appendChild(fu);
+  setTimeout(()=>{ bot.textContent=v; fd.remove(); fu.remove(); },620);
+}
+function tick(){
+  const now=new Date(); let h=now.getHours();
+  if(!h24){ ap.textContent=h<12?'AM':'PM'; h=h%12||12; }
+  const s=String(h).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0')+String(now.getSeconds()).padStart(2,'0');
+  slots.forEach((d,i)=>set(d,s[i]));
+  dateEl.textContent=now.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('sr').textContent=now.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+}
+// first paint without animation
+(function(){ const now=new Date(); let h=now.getHours(); if(!h24) h=h%12||12;
+  const s=String(h).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0')+String(now.getSeconds()).padStart(2,'0');
+  slots.forEach((d,i)=>{d._v=s[i]; d.querySelectorAll('span').forEach(x=>x.textContent=s[i]);}); })();
+tick(); setInterval(tick,1000);
+</script></body></html>

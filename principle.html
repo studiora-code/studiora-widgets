@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daily Principle</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widgets.css">
+<style>.line{font:italic 500 28px/1.25 var(--serif);margin:12px 0 10px}.rule{width:36px;height:1px;background:var(--acc);margin-top:12px}</style>
+</head>
+<body><main class="card" aria-label="Daily money principle">
+<p class="eyebrow">Principle of the day</p>
+<p class="line" id="line"></p><p class="sub" id="note"></p><div class="rule"></div>
+</main>
+<script src="widgets.js"></script>
+<script>
+// Plain-language money principles, written for this planner (not attributed quotes).
+const P=[
+ ['Pay yourself first.','Move savings out on payday, before spending starts.'],
+ ['Track before you trim.','A week of honest records shows where money actually goes.'],
+ ['Small amounts, every week.','Consistency matters more than the size of any one deposit.'],
+ ['Know the price in hours.','Divide a cost by your hourly pay before you buy.'],
+ ['Wait a day on wants.','A 24-hour pause separates needs from impulses.'],
+ ['Build the cushion first.','An emergency fund keeps one bad week from becoming debt.'],
+ ['Read the fees.','A small yearly fee compounds just like growth does.'],
+ ['Interest works both ways.','The same math that grows savings grows unpaid balances.'],
+ ['Write the goal down.','A named goal with a date is easier to fund.'],
+ ['Review monthly.','Ten minutes a month keeps a budget honest.'],
+ ['Diversify what you learn.','Understand an investment before you put money in it.'],
+ ['Spend on purpose.','Money spent on what you value is not wasted.']
+];
+const day=Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5);
+const [a,b]=P[day%P.length];document.getElementById('line').textContent=a;document.getElementById('note').textContent=b;
+</script></body></html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Focus Timer</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="widgets.css">
+<style>
+.wrap{display:flex;gap:26px;align-items:center}
+.ring{position:relative;width:170px;height:170px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .t{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .t b{font:500 44px/1 var(--serif);font-variant-numeric:tabular-nums}
+.modes{display:flex;gap:6px;flex-wrap:wrap}
+.modes button[aria-pressed="true"]{border-color:var(--acc);color:var(--acc)}
+.dots{display:flex;gap:6px;margin-top:4px}.dots i{width:8px;height:8px;border-radius:50%;border:1px solid var(--acc)}.dots i.on{background:var(--acc)}
+@media (max-width:460px){.wrap{flex-direction:column;gap:14px}}
+</style></head>
+<body><main class="card" aria-label="Focus timer">
+<div class="wrap">
+<div class="ring"><svg width="170" height="170" viewBox="0 0 170 170" aria-hidden="true">
+<circle cx="85" cy="85" r="76" fill="none" stroke="var(--track)" stroke-width="6"/>
+<circle id="arc" cx="85" cy="85" r="76" fill="none" stroke="var(--acc)" stroke-width="6" stroke-linecap="round" stroke-dasharray="477.5" stroke-dashoffset="0"/></svg>
+<div class="t"><b id="time" role="timer" aria-live="off">25:00</b><span class="eyebrow" id="phase" style="margin-top:8px">Focus</span></div></div>
+<div class="stack" style="flex:1">
+<p class="eyebrow">Study session</p>
+<div class="modes" role="group" aria-label="Session length">
+<button data-m="25" aria-pressed="true">25 / 5</button><button data-m="50" aria-pressed="false">50 / 10</button><button data-m="90" aria-pressed="false">90 / 15</button></div>
+<div class="row"><button class="primary" id="go">Start</button><button id="reset">Reset</button></div>
+<div><p class="sub">Sessions today</p><div class="dots" id="dots" aria-label="Sessions completed today"></div></div>
+</div></div>
+<p class="sr" id="sr" aria-live="assertive"></p>
+</main>
+<script src="widgets.js"></script>
+<script>
+const $=id=>document.getElementById(id), C=477.5;
+const breaks={25:5,50:10,90:15};
+let mode=+W.param('minutes',25); if(!breaks[mode]) mode=25;
+let phase='focus', total=mode*60, left=total, running=false, endAt=0, timer=null;
+const today=new Date().toDateString();
+let log=W.store.get('focus:log',{day:today,n:0}); if(log.day!==today) log={day:today,n:0};
+function dots(){const d=$('dots');d.innerHTML='';for(let i=0;i<Math.max(4,log.n);i++){const x=document.createElement('i');if(i<log.n)x.className='on';d.appendChild(x);}d.setAttribute('aria-label',log.n+' sessions completed today');}
+function draw(){const m=Math.floor(left/60),s=left%60;$('time').textContent=m+':'+String(s).padStart(2,'0');
+  $('arc').style.strokeDashoffset=C*(1-left/total);$('phase').textContent=phase==='focus'?'Focus':'Break';document.title=$('time').textContent+' · '+(phase==='focus'?'Focus':'Break');}
+function chime(){try{const a=new (window.AudioContext||window.webkitAudioContext)();[660,880].forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=f;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.0001,a.currentTime+i*.25);g.gain.exponentialRampToValueAtTime(.2,a.currentTime+i*.25+.02);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+i*.25+.6);o.start(a.currentTime+i*.25);o.stop(a.currentTime+i*.25+.65);});}catch(e){}}
+function step(){left=Math.max(0,Math.round((endAt-Date.now())/1000));draw();
+  if(left===0){chime();if(phase==='focus'){log.n++;W.store.set('focus:log',log);dots();phase='break';total=breaks[mode]*60;}else{phase='focus';total=mode*60;}
+    left=total;$('sr').textContent=phase==='focus'?'Break over. Time to focus.':'Session complete. Take a break.';endAt=Date.now()+left*1000;draw();}}
+$('go').onclick=()=>{running=!running;if(running){endAt=Date.now()+left*1000;timer=setInterval(step,250);$('go').textContent='Pause';}else{clearInterval(timer);$('go').textContent='Start';}};
+$('reset').onclick=()=>{clearInterval(timer);running=false;phase='focus';total=left=mode*60;$('go').textContent='Start';draw();};
+document.querySelectorAll('[data-m]').forEach(b=>{b.setAttribute('aria-pressed',+b.dataset.m===mode);b.onclick=()=>{mode=+b.dataset.m;document.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('reset').click();};});
+total=left=mode*60;dots();draw();
+</script></body></html>
