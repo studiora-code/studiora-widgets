@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Focus Beaker</title>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Source+Serif+4:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+:root{--p:#F3EBDD;--t:#3D0F4C;--r:#2BB36F;--k:#271F2A}
+*{box-sizing:border-box;margin:0}html,body{height:100%}
+body{background:var(--p);color:var(--k);font-family:"Courier Prime",monospace;display:flex;align-items:center;justify-content:center;padding:12px;overflow:hidden;
+ background-image:repeating-linear-gradient(transparent 0 23px,rgba(61,15,76,.13) 23px 24px);}
+.page{width:100%;max-width:700px;display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;padding:8px 8px 8px 56px;position:relative}
+.page:before{content:"";position:absolute;left:38px;top:-40px;bottom:-40px;width:1px;background:var(--r);opacity:.6}
+h1{font:italic 500 28px/1.1 "Source Serif 4",serif;color:var(--t)}
+.k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--t)}
+.big{font:700 34px/1 "Courier Prime";color:var(--t);margin:6px 0}
+.obs{font-size:13px;margin:4px 0 8px}
+button{font:700 12px "Courier Prime";letter-spacing:.08em;text-transform:uppercase;color:var(--t);background:#FBF6EC;border:1.5px solid var(--t);border-radius:4px;padding:7px 11px;cursor:pointer}
+button[aria-pressed="true"],button.go{background:var(--t);color:var(--p)}
+button:focus-visible{outline:2px solid var(--r);outline-offset:2px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+@keyframes up{from{transform:translateY(0);opacity:.8}to{transform:translateY(-70px);opacity:0}}
+.bub{animation:up 2.6s linear infinite}
+.paused .bub{animation-play-state:paused;opacity:0}
+@media(max-width:480px){.page{grid-template-columns:1fr;justify-items:center;text-align:center;padding-left:8px}.page:before{display:none}.row{justify-content:center}}
+@media (prefers-reduced-motion:reduce){.bub{animation:none;opacity:0}}
+</style></head><body>
+<main class="page paused" id="pg" aria-label="Focus timer, lab beaker">
+<svg width="170" height="210" viewBox="0 0 170 210" role="img" aria-label="Beaker filling as the session progresses">
+<defs><clipPath id="cl"><path d="M40 30 V180 Q40 192 52 192 H118 Q130 192 130 180 V30 Z"/></clipPath></defs>
+<g clip-path="url(#cl)"><rect id="liq" x="30" y="192" width="110" height="0" fill="#3D0F4C" fill-opacity=".78"/>
+<rect id="men" x="30" y="190" width="110" height="3" fill="#3D0F4C"/>
+<circle class="bub" cx="70" cy="185" r="3" fill="#F3EBDD" style="animation-delay:.2s"/><circle class="bub" cx="95" cy="188" r="2" fill="#F3EBDD" style="animation-delay:1.1s"/><circle class="bub" cx="110" cy="186" r="2.5" fill="#F3EBDD" style="animation-delay:1.9s"/></g>
+<path d="M30 26 H40 V180 Q40 192 52 192 H118 Q130 192 130 180 V26 H140" fill="none" stroke="#3D0F4C" stroke-width="3" stroke-linejoin="round"/>
+<g id="grad"></g>
+<text x="85" y="206" text-anchor="middle" font-family="Courier Prime" font-size="10" fill="#3D0F4C">mL · min</text>
+</svg>
+<div>
+<p class="k">Experiment log · focus run</p>
+<h1>Steady-state study</h1>
+<p class="big" id="t" role="timer">25:00</p>
+<p class="obs" id="obs">Obs: beaker empty. Press start.</p>
+<div class="row" role="group" aria-label="Session length"><button data-m="25">25 / 5</button><button data-m="50">50 / 10</button><button data-m="90">90 / 15</button></div>
+<div class="row"><button class="go" data-go>Start trial</button><button data-reset>Reset</button></div>
+</div>
+<p id="sr" style="position:absolute;width:1px;height:1px;overflow:hidden" aria-live="assertive"></p>
+</main>
+<script src="timer.js"></script>
+<script>
+let g='';for(let i=0;i<=10;i++){const y=192-i*15;g+=`<line x1="130" y1="${y}" x2="${i%5?120:114}" y2="${y}" stroke="#3D0F4C" stroke-width="1.2"/>`;if(i%5===0&&i)g+=`<text x="111" y="${y+3}" text-anchor="end" font-family="Courier Prime" font-size="9" fill="#3D0F4C">${i*10}</text>`;}
+document.getElementById('grad').innerHTML=g;
+document.querySelector('[data-go]').dataset.start='Start trial';
+FocusTimer({id:'sci',notes:[880,1175,1568],announce:m=>document.getElementById('sr').textContent=m,render(s){
+ const f=s.phase==='focus'?s.frac:1-s.frac, h=150*f;
+ const L=document.getElementById('liq');L.setAttribute('y',192-h);L.setAttribute('height',h);document.getElementById('men').setAttribute('y',190-h);
+ document.getElementById('t').textContent=Math.floor(s.left/60)+':'+String(s.left%60).padStart(2,'0');
+ document.getElementById('pg').classList.toggle('paused',!s.running);
+ document.getElementById('obs').textContent=!s.running&&s.frac===0?'Obs: beaker empty. Press start.':s.phase==='focus'?`Obs: ${Math.round(f*100)}% filled · trials today: ${s.sessions}`:`Obs: draining (break) · trials today: ${s.sessions}`;}});
+</script></body></html>

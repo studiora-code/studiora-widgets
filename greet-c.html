@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Greeting</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=IBM+Plex+Mono:wght@400&family=Courier+Prime:wght@400&family=Source+Serif+4:ital,wght@1,500&family=Kalam:wght@700&family=Cormorant+Garamond:ital,wght@1,500&family=Inter:wght@400&family=JetBrains+Mono:wght@400;600&family=Public+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}html,body{height:100%}
+body{display:flex;align-items:center;padding:6px 4px;overflow:hidden;background:var(--page)}
+.g{width:100%;padding:14px 18px;border-radius:var(--r);background:var(--bg);color:var(--fg);border:var(--bd)}
+.h{font:var(--hf);letter-spacing:var(--ls)}
+.d{font:var(--df);color:var(--mu);margin-top:4px;letter-spacing:.04em}
+/* per-field looks */
+[data-f="eng"]{--page:#fff;--bg:#126B55;--fg:#EEF8F5;--mu:rgba(238,248,245,.75);--r:0;--bd:1.5px solid #0D5544;--hf:600 24px/1.15 "Barlow Condensed",sans-serif;--ls:.04em;--df:400 12px "IBM Plex Mono",monospace}
+[data-f="sci"]{--page:#fff;--bg:#F3EBDD;--fg:#3D0F4C;--mu:#271F2A;--r:6px;--bd:1px solid rgba(61,15,76,.25);--hf:italic 500 22px/1.2 "Source Serif 4",serif;--ls:0;--df:400 13px "Courier Prime",monospace}
+[data-f="math"]{--page:#fff;--bg:#1D202A;--fg:#ECEAE1;--mu:#F2C14E;--r:8px;--bd:0;--hf:700 22px/1.2 Kalam,cursive;--ls:0;--df:700 15px Kalam,cursive}
+[data-f="fin"]{--page:#fff;--bg:#20252E;--fg:#F0E7DB;--mu:#C8AD85;--r:12px;--bd:1px solid rgba(200,173,133,.25);--hf:italic 500 26px/1.15 "Cormorant Garamond",serif;--ls:0;--df:400 12px Inter,sans-serif}
+[data-f="tech"]{--page:#fff;--bg:#0D0F0C;--fg:#D2E8E9;--mu:#00FFF8;--r:6px;--bd:1px solid rgba(0,255,248,.35);--hf:600 17px/1.4 "JetBrains Mono",monospace;--ls:0;--df:400 12px "JetBrains Mono",monospace}
+[data-f="med"]{--page:#fff;--bg:#FBE5EF;--fg:#1E5249;--mu:#B0376B;--r:10px;--bd:0;--hf:700 19px/1.3 "Public Sans",sans-serif;--ls:0;--df:400 13px "Public Sans",sans-serif}
+@media (prefers-color-scheme:dark){body{--page:#191919}}
+</style></head>
+<body><div class="g" role="status"><p class="h" id="h"></p><p class="d" id="d"></p></div>
+<script>
+const q=new URLSearchParams(location.search),f=q.get('f')||'fin';document.documentElement.dataset.f=f;
+const phrase=(q.get('on')||'on the list').slice(0,40);
+function draw(){const n=new Date(),h=n.getHours(),part=h<5?'evening':h<12?'morning':h<17?'afternoon':'evening';
+ const pre=f==='tech'?'> ':'';document.getElementById('h').textContent=`${pre}Good ${part}. Here's what's ${phrase} today.`;
+ document.getElementById('d').textContent=(f==='tech'?'# ':'')+n.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});}
+draw();setInterval(draw,60000);
+</script></body></html>

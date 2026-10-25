@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Terminal Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}html,body{height:100%}
+body{background:#0D0F0C;color:#00FFF8;font:13px/1.5 "JetBrains Mono",monospace;display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden}
+.t{width:100%;max-width:520px;text-shadow:0 0 6px rgba(0,255,248,.35)}
+.dim{opacity:.55}.big{font:700 54px/1.05 "JetBrains Mono";color:#D2E8E9;letter-spacing:.02em}
+.bin{display:flex;gap:10px;margin-top:8px}.bin div{display:grid;gap:3px}.bin i{width:9px;height:9px;border:1px solid rgba(0,255,248,.5);display:block}.bin i.on{background:#00FFF8}
+.cur{display:inline-block;width:8px;height:15px;background:#00FFF8;vertical-align:-2px;animation:b 1s steps(1) infinite}@keyframes b{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.cur{animation:none}}
+</style></head><body>
+<main class="t" aria-label="Clock">
+<div><span class="dim">$</span> date +"%H:%M:%S"</div>
+<div class="big" id="dg" role="timer">00:00:00</div>
+<div class="dim" id="dt"></div>
+<div class="bin" id="bin" aria-hidden="true"></div>
+<div><span class="dim">$</span> <span class="cur"></span></div>
+</main>
+<script src="clocks.js"></script>
+<script>
+// binary columns: hours, minutes, seconds (6 bits each, top = 32)
+const bin=document.getElementById('bin');
+function t(){const d=new Date(),p=n=>String(n).padStart(2,'0');document.getElementById('dg').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+ document.getElementById('dt').textContent='# '+dateLine(d).toLowerCase();
+ bin.innerHTML=[d.getHours(),d.getMinutes(),d.getSeconds()].map(v=>'<div>'+[32,16,8,4,2,1].map(b=>`<i class="${v&b?'on':''}"></i>`).join('')+'</div>').join('');}
+t();setInterval(t,1000);
+</script></body></html>
