@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chart Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}html,body{height:100%}
+body{background:#E8F0E9;color:#1E3A52;font-family:"Public Sans",sans-serif;display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden;
+ background-image:radial-gradient(rgba(30,58,82,.12) 1px,transparent 1px);background-size:14px 14px}
+.c{width:100%;max-width:560px;background:#fff;border:1px solid rgba(30,58,82,.18);border-left:5px solid #E07A5F;border-radius:12px;padding:14px 18px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}
+.k{font:700 10px "Public Sans";letter-spacing:.2em;text-transform:uppercase;color:rgba(30,58,82,.7)}
+.big{font:700 52px/1 "Public Sans";font-variant-numeric:tabular-nums;letter-spacing:-.01em}.big small{font-size:16px;font-weight:600;margin-left:6px;color:#B04E37}
+.sub{font-size:13px;margin-top:4px}
+.shift{text-align:right}.shift b{display:block;font-size:18px}
+.bar{grid-column:1/-1;height:6px;border-radius:6px;background:rgba(30,58,82,.08);position:relative;overflow:hidden}.bar i{position:absolute;left:0;top:0;bottom:0;background:#E07A5F;border-radius:6px}
+</style></head><body>
+<main class="c" aria-label="Clock">
+<div><p class="k">Charting time · 24-hour</p><p class="big" id="dg">0000<small>hrs</small></p><p class="sub" id="dt"></p></div>
+<div class="shift"><p class="k">Day elapsed</p><b id="pc">0%</b></div>
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+</main>
+<script src="clocks.js"></script>
+<script>
+function t(){const d=new Date(),p=n=>String(n).padStart(2,'0');document.getElementById('dg').innerHTML=p(d.getHours())+p(d.getMinutes())+'<small>hrs</small>';
+ document.getElementById('dt').textContent=dateLine(d);const f=(d.getHours()*60+d.getMinutes())/1440;document.getElementById('pc').textContent=Math.round(f*100)+'%';document.getElementById('fill').style.width=(f*100)+'%';}
+t();setInterval(t,1000);
+</script></body></html>

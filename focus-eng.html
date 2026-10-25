@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Focus Gauge</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--b:#123A6B;--b2:#0D2C55;--c:#EEF3F8;--o:#F26A1B}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--b);color:var(--c);font-family:"IBM Plex Mono",monospace;display:flex;align-items:center;justify-content:center;padding:12px;overflow:hidden;
+ background-image:linear-gradient(rgba(238,243,248,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(238,243,248,.07) 1px,transparent 1px);background-size:16px 16px}
+.sheet{width:100%;max-width:700px;border:1.5px solid rgba(238,243,248,.55);padding:16px 18px;display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;position:relative}
+.sheet:before{content:"";position:absolute;inset:5px;border:1px solid rgba(238,243,248,.25);pointer-events:none}
+svg text{font-family:"IBM Plex Mono",monospace;fill:var(--c)}
+h1{font:600 26px/1 "Barlow Condensed",sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.k{font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+.tb{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid rgba(238,243,248,.45);margin:10px 0}
+.tb div{padding:6px 8px;border-right:1px solid rgba(238,243,248,.45)}.tb div:last-child{border:0}
+.tb b{display:block;font:600 18px/1.1 "Barlow Condensed";letter-spacing:.06em}
+button{font:500 11px "IBM Plex Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--c);background:transparent;border:1px solid rgba(238,243,248,.55);padding:8px 12px;cursor:pointer}
+button[aria-pressed="true"],button.go{background:var(--o);border-color:var(--o);color:#fff}
+button:focus-visible{outline:2px solid var(--o);outline-offset:2px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+@media(max-width:480px){.sheet{grid-template-columns:1fr;justify-items:center;text-align:center}.row{justify-content:center}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+<main class="sheet" aria-label="Focus timer, engineering gauge">
+<svg width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Pressure gauge showing session progress">
+<circle cx="100" cy="100" r="92" fill="none" stroke="#EEF3F8" stroke-opacity=".55" stroke-width="1.5"/>
+<circle cx="100" cy="100" r="86" fill="#0D2C55" stroke="#EEF3F8" stroke-opacity=".3"/>
+<g id="ticks"></g>
+<path id="red" fill="none" stroke="#F26A1B" stroke-width="5"/>
+<text id="t" x="100" y="168" text-anchor="middle" font-size="22" font-weight="500">25:00</text>
+<text id="ph" x="100" y="182" text-anchor="middle" font-size="8" letter-spacing="2" opacity=".7">LOAD: FOCUS</text>
+<g id="needle" style="transition:transform .25s linear;transform-origin:100px 100px">
+<path d="M100 100 L97 104 L100 30 L103 104 Z" fill="#F26A1B"/></g>
+<circle cx="100" cy="100" r="7" fill="#EEF3F8"/><circle cx="100" cy="100" r="3" fill="#123A6B"/>
+</svg>
+<div>
+<p class="k">Sheet F-01 · study load test</p>
+<h1>Focus gauge</h1>
+<div class="tb"><div><span class="k">Cycle</span><b id="cy">25 / 5</b></div><div><span class="k">Sessions</span><b id="ss">0</b></div><div><span class="k">Status</span><b id="stt">Idle</b></div></div>
+<div class="row" role="group" aria-label="Session length"><button data-m="25">25/5</button><button data-m="50">50/10</button><button data-m="90">90/15</button></div>
+<div class="row"><button class="go" data-go>Start</button><button data-reset>Reset</button></div>
+</div>
+<p id="sr" style="position:absolute;width:1px;height:1px;overflow:hidden" aria-live="assertive"></p>
+</main>
+<script src="timer.js"></script>
+<script>
+// gauge sweeps 270° from -135° to +135°
+const tk=document.getElementById('ticks');let o='';
+for(let i=0;i<=50;i++){const a=(-135+i*5.4)*Math.PI/180,r1=86,r2=i%5?80:72,cx=100,cy=100;
+ o+=`<line x1="${cx+r1*Math.sin(a)}" y1="${cy-r1*Math.cos(a)}" x2="${cx+r2*Math.sin(a)}" y2="${cy-r2*Math.cos(a)}" stroke="#EEF3F8" stroke-opacity="${i%5?.45:.9}" stroke-width="${i%5?1:1.6}"/>`;
+ if(i%10===0){const r3=60;o+=`<text x="${cx+r3*Math.sin(a)}" y="${cy-r3*Math.cos(a)+3}" text-anchor="middle" font-size="8">${i*2}</text>`;}}
+tk.innerHTML=o;
+const arc=(a0,a1,r)=>{const p=a=>[100+r*Math.sin(a*Math.PI/180),100-r*Math.cos(a*Math.PI/180)];const [x0,y0]=p(a0),[x1,y1]=p(a1);return `M${x0} ${y0} A${r} ${r} 0 0 1 ${x1} ${y1}`;};
+document.getElementById('red').setAttribute('d',arc(108,135,83));
+FocusTimer({id:'eng',notes:[520,780],wave:'triangle',announce:m=>document.getElementById('sr').textContent=m,render(s){
+ document.getElementById('needle').style.transform=`rotate(${-135+s.frac*270}deg)`;
+ document.getElementById('t').textContent=Math.floor(s.left/60)+':'+String(s.left%60).padStart(2,'0');
+ document.getElementById('ph').textContent='LOAD: '+(s.phase==='focus'?'FOCUS':'COOL-DOWN');
+ document.getElementById('cy').textContent=s.mode+' / '+({25:5,50:10,90:15})[s.mode];
+ document.getElementById('ss').textContent=s.sessions;document.getElementById('stt').textContent=s.running?(s.phase==='focus'?'Running':'Break'):'Idle';}});
+</script></body></html>
